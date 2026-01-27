@@ -51,6 +51,7 @@ Performance optimization and best practices guide for Azure Cosmos DB applicatio
    - 4.7 [Configure Availability Strategy (Hedging)](#47-configure-availability-strategy-hedging)
    - 4.8 [Configure Partition-Level Circuit Breaker](#48-configure-partition-level-circuit-breaker)
    - 4.9 [Configure Excluded Regions for Dynamic Failover](#49-configure-excluded-regions-for-dynamic-failover)
+   - 4.10 [Use Consistent Enum Serialization](#410-use-consistent-enum-serialization)
 5. [Indexing Strategies](#5-indexing-strategies) — **MEDIUM-HIGH**
    - 5.1 [Exclude Unused Index Paths](#51-exclude-unused-index-paths)
    - 5.2 [Use Composite Indexes for ORDER BY](#52-use-composite-indexes-for-order-by)
@@ -464,6 +465,36 @@ Exclude regions per-request for fine-grained control.
 
 ```csharp
 new ItemRequestOptions { ExcludeRegions = new List<string> { "East US" } }
+```
+
+### 4.10 Use Consistent Enum Serialization
+
+**Impact: CRITICAL (prevents silent query failures)**
+
+The Cosmos SDK stores enums as integers by default, but API frameworks serialize them as strings. This mismatch causes queries to return empty results.
+
+**Problem:**
+```csharp
+// Cosmos stores: {"status": 1}
+// Query looks for: WHERE c.status = "Shipped"  → Returns nothing!
+```
+
+**Solution - Configure SDK to use string enums:**
+
+```csharp
+var clientOptions = new CosmosClientOptions
+{
+    Serializer = new CosmosSystemTextJsonSerializer(new JsonSerializerOptions
+    {
+        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+        Converters = { new JsonStringEnumConverter() }
+    })
+};
+```
+
+**Alternative - Query with integer value:**
+```csharp
+.WithParameter("@status", (int)OrderStatus.Shipped)
 ```
 
 ---
