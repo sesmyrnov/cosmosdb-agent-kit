@@ -37,3 +37,7 @@
 
 **Impact:** LOW-MEDIUM  
 **Description:** Proactive monitoring catches issues before they impact users. Diagnostics enable root cause analysis.
+## 9. Design Patterns (pattern)
+
+**Impact:** HIGH  
+**Description:** Architecture patterns for common scenarios like cross-partition query optimization, event sourcing, and multi-tenant designs.

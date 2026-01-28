@@ -182,7 +182,7 @@ testing/
                                 ▼
 ┌─────────────────────────────────────────────────────────────────┐
 │  4. TEST THE APP                                               │
-│     • Run it locally                                           │
+│     • Run it locally (with Cosmos DB Emulator)                 │
 │     • Call all endpoints                                       │
 │     • Verify data is persisted in Cosmos DB                    │
 │     • Note any bugs or issues                                  │
@@ -193,20 +193,162 @@ testing/
 │     • Bugs found                                               │
 │     • Best practice gaps                                       │
 │     • Score (1-10)                                             │
-│     • Proposed skill improvements                              │
+│     • Lessons learned (see Feedback Loop below!)               │
 └───────────────────────────────┬─────────────────────────────────┘
                                 ▼
 ┌─────────────────────────────────────────────────────────────────┐
-│  6. Clean up iteration folder                                  │
+│  6. FEEDBACK LOOP: Review and propose new rules                │
+│     • See "Continuous Improvement" section below               │
+│     • Create new rules for patterns/issues discovered          │
+│     • Update IMPROVEMENTS-LOG.md                               │
+└───────────────────────────────┬─────────────────────────────────┘
+                                ▼
+┌─────────────────────────────────────────────────────────────────┐
+│  7. Clean up iteration folder                                  │
 │     • Delete bin/, obj/, node_modules/, etc.                   │
 │     • Zip all source files to source-code.zip                  │
 │     • Delete source files (keep only ITERATION.md + zip)       │
-└───────────────────────────────┬─────────────────────────────────┘
-                                ▼
-┌─────────────────────────────────────────────────────────────────┐
-│  7. Update IMPROVEMENTS-LOG.md with findings                   │
 └─────────────────────────────────────────────────────────────────┘
 ```
+
+---
+
+## 🔄 Continuous Improvement: The Feedback Loop
+
+**After each iteration, review the lessons learned and propose new rules!**
+
+This is a critical part of the testing framework. The goal is to continuously improve the skill kit based on real-world issues encountered during development.
+
+### Step 1: Review Iteration Results
+
+After completing an iteration, analyze the `ITERATION.md` for:
+
+1. **Bugs encountered** - Were there patterns that caused issues?
+2. **Workarounds discovered** - Did you find solutions not documented in the rules?
+3. **SDK-specific quirks** - Did the SDK behave unexpectedly?
+4. **Configuration challenges** - Were there setup issues (emulator, SSL, env vars)?
+5. **Missing guidance** - What questions came up that the rules didn't answer?
+
+### Step 2: Check Existing Rules
+
+Before creating a new rule, verify it doesn't already exist:
+
+```
+skills/cosmosdb-best-practices/rules/
+├── model-*.md       # Data modeling rules
+├── partition-*.md   # Partition key rules
+├── query-*.md       # Query optimization rules
+├── sdk-*.md         # SDK best practices
+├── index-*.md       # Indexing strategies
+├── throughput-*.md  # Throughput & scaling
+├── global-*.md      # Global distribution
+├── monitoring-*.md  # Monitoring & diagnostics
+└── pattern-*.md     # Design patterns
+```
+
+### Step 3: Propose New Rules
+
+If you identify a gap, create a new rule following this template:
+
+```markdown
+---
+title: Short description of the rule
+impact: CRITICAL | HIGH | MEDIUM | LOW
+impactDescription: brief explanation of impact
+tags: category, sdk, relevant, keywords
+---
+
+## Rule Title
+
+Brief description of the problem this rule addresses.
+
+**Problem:**
+\`\`\`language
+// Code showing the problem
+\`\`\`
+
+**Solution:**
+\`\`\`language
+// Code showing the correct approach
+\`\`\`
+
+**Key Points:**
+- Important takeaway 1
+- Important takeaway 2
+
+Reference: [Link to official docs](url)
+```
+
+### Step 4: Categories for New Rules
+
+| Prefix | Category | When to Use |
+|--------|----------|-------------|
+| `model-` | Data Modeling | Document structure, embedding vs referencing |
+| `partition-` | Partition Key Design | Partition key selection, distribution |
+| `query-` | Query Optimization | Query patterns, filtering, pagination |
+| `sdk-` | SDK Best Practices | Client configuration, connection, retries |
+| `index-` | Indexing Strategies | Index policies, composite indexes |
+| `throughput-` | Throughput & Scaling | RU provisioning, autoscale |
+| `global-` | Global Distribution | Multi-region, consistency |
+| `monitoring-` | Monitoring & Diagnostics | Logging, metrics, alerts |
+| `pattern-` | Design Patterns | Architecture patterns (e.g., Change Feed) |
+
+### Step 5: Update IMPROVEMENTS-LOG.md
+
+After creating new rules, log them:
+
+```markdown
+## 2026-01-28 - Iteration 003 (Java)
+
+### New Rules Created
+- `sdk-emulator-ssl.md` - SSL certificate configuration for Java SDK with emulator
+- `sdk-java-content-response.md` - contentResponseOnWriteEnabled requirement
+
+### Lessons Learned
+- Java SDK requires Gateway mode for emulator (Direct mode fails)
+- createItem returns null unless contentResponseOnWriteEnabled is set
+```
+
+### Step 6: Regenerate AGENTS.md
+
+After adding rules, rebuild the compiled AGENTS.md:
+
+```bash
+npm run build
+# or
+node scripts/compile.js
+```
+
+This ensures the new rules are included when agents load the skills.
+
+### Examples of Rules Added from Iterations
+
+| Iteration | Issue Found | Rule Created |
+|-----------|-------------|--------------|
+| 001-dotnet | Enum queries returned empty | `sdk-serialization-enums.md` |
+| 003-java | SSL handshake failures | `sdk-emulator-ssl.md` |
+| 003-java | createItem returned null | `sdk-java-content-response.md` |
+| 004-python | System env vars overrode .env | `sdk-local-dev-config.md` |
+| Multiple | Cross-partition admin queries | `pattern-change-feed-materialized-views.md` |
+
+### Questions to Ask After Each Iteration
+
+1. ❓ **Was there a bug that a rule could have prevented?**
+   → Create a new rule with the problem and solution
+
+2. ❓ **Did you discover a workaround not in the docs?**
+   → Document it as a rule for future iterations
+
+3. ❓ **Was there SDK-specific behavior that surprised you?**
+   → Add to existing SDK rule or create new one
+
+4. ❓ **Did you spend time debugging configuration issues?**
+   → Create a rule to save time for future developers
+
+5. ❓ **Did you find a pattern that could benefit other scenarios?**
+   → Create a `pattern-*.md` rule
+
+---
 
 ## Scoring Guide
 
@@ -239,14 +381,27 @@ Based on findings, these actions are tracked:
 
 When completing an iteration, verify:
 
+### Build & Test
 - [ ] **⚠️ Skills were loaded BEFORE building** (read AGENTS.md first!)
 - [ ] App compiles/builds without errors
-- [ ] App runs locally
+- [ ] App runs locally with Cosmos DB Emulator
 - [ ] All CRUD endpoints work
 - [ ] Data persists to Cosmos DB
 - [ ] Query endpoints return correct data
 - [ ] No obvious security issues
+
+### Documentation
 - [ ] ITERATION.md documents all findings
 - [ ] ITERATION.md notes which skills were applied/not applied
+- [ ] ITERATION.md includes "Lessons Learned" section
+- [ ] Score assigned with justification
+
+### Feedback Loop (NEW!)
+- [ ] **Reviewed lessons learned for potential new rules**
+- [ ] **Checked if issues could have been prevented by a rule**
+- [ ] **Created new rules for undocumented patterns/issues**
+- [ ] **Updated IMPROVEMENTS-LOG.md with new rules**
+
+### Cleanup
 - [ ] Source code is zipped and source files deleted
-- [ ] IMPROVEMENTS-LOG.md is updated
+- [ ] Build artifacts removed (bin/, obj/, node_modules/, target/, etc.)
