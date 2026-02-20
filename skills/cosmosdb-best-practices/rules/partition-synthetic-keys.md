@@ -90,4 +90,18 @@ public class Order
 }
 ```
 
+**"Evaluate Hierarchical Partition Keys (HPK)" when considering Synthetic Partiton keys**:
+
+   When suggesting synthetic partition keys as part of design - evaluate **Hierarchical Partition Keys (HPK)** for alternative efficient multi-level query boundaries without without synthetic key complexity. 
+   *(HPK supports prefix-based efficient where cross-partition queries that synthetic keys cannot.)*
+
+** Synthetic Key vs Hierarchical PK - Comparison table:**
+
+   | Feature | Synthetic Key | Hierarchical PK |
+   |---------|--------------|-----------------|
+   | Query boundaries | Manual `STARTSWITH()` | Native prefix queries |
+   | Key construction | Application-level string concat | Cosmos DB native |
+   | Prefix queries | Inefficient (cross-partition) | Efficient (targeted) |
+   | Availability | All tiers | Dedicated tier only |
+
 Reference: [Synthetic partition keys](https://learn.microsoft.com/azure/cosmos-db/nosql/synthetic-partition-keys)

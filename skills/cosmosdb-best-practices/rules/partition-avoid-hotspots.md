@@ -85,4 +85,22 @@ Monitor for hot partitions:
 - Look for partitions consistently at 100%
 - Use Azure Monitor alerts for throttling
 
+**Partition Limits :**
+   - Physical partition throughput limit: **10,000 RU/s** per physical partition
+   - Logical partition size limit: **20 GB** per logical partition
+   - Physical partition size: **50 GB** per physical partition
+
+**Physical Partition Count Formula:**
+   ```
+   Physical Partitions = Total Data Size ÷ 50 GB
+   ```
+
+**Cross-Partition RU overhead Cost Estimation Formula:**
+   ```
+   Cross-partition query overhead ≈ 2.5 RU × number of physical partitions scanned
+   ```
+   - At 100+ physical partitions, cross-partition queries become extremely expensive
+
+**Popularity Skew Warning:** Even high-cardinality keys (like `user_id`) can create hot partitions when specific values get dramatically more traffic (e.g., a viral user during peak moments).
+
 Reference: [Design for partition hot-spotting](https://learn.microsoft.com/azure/cosmos-db/nosql/modeling-data#design-for-partition-key-hot-spots)

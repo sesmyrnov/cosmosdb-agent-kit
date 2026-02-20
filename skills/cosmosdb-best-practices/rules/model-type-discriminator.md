@@ -7,6 +7,9 @@ tags: model, polymorphism, type-discriminator, design
 
 ## Use Type Discriminators for Polymorphic Data
 
+Consider parent/child or different entities colocation in Cosmos DB in single container when:
+- similar entities write/read together and share natural or business key (partition Key), require simple transactional boundary and do not exceed Cosmos DB Partition Key limits.
+
 When storing multiple entity types in the same container, include a type discriminator field for efficient filtering and deserialization.
 
 **Incorrect (no type discrimination):**
@@ -83,5 +86,19 @@ Benefits:
 - Efficient filtering with indexed `type` field
 - Clear deserialization logic
 - Self-documenting data structure
+
+**"When NOT to Use Multi-Entity Containers"** :
+   - Independent throughput requirements → Use separate containers
+   - Different scaling patterns → Use separate containers
+   - Different indexing needs → Use separate containers
+   - Distinct change feed processing requirements → Use separate containers
+   - Low access correlation (<20%) → Use separate containers
+
+**Single-Container Anti-Patterns** :
+   - "Everything container" → Complex filtering → Difficult analytics
+   - One throughput allocation for all entity types
+   - One change feed with mixed events requiring filtering
+   - Difficult to maintain and onboard new developers
+
 
 Reference: [Model data in Cosmos DB](https://learn.microsoft.com/azure/cosmos-db/nosql/modeling-data)
